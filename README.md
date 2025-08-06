@@ -41,5 +41,5 @@ We explored:
 ## How to Use
 You can run the **entire pipeline** with:
 ```bash
-python main.py
+main.py
 
