@@ -38,6 +38,20 @@ We explored:
 - **ResNet34** performed well in the patient-dependent setting.
 - LSTM underperformed compared to CNN-based models.
 
+### 📦 Libraries Used
+
+The following Python libraries were used in this project:
+
+- `torch` – for deep learning model training and inference  
+- `torchvision` – for ResNet-based architectures  
+- `numpy`, `pandas` – for data manipulation and loading  
+- `matplotlib`, `seaborn` – for visualizing training progress, evaluation metrics, and spectrograms  
+- `scikit-learn` – for computing precision, recall, F1-score, and confusion matrix  
+- `librosa` – for audio preprocessing and **Mel spectrogram extraction**  
+- `tqdm` – for tracking training progress  
+- `os`, `glob`, `argparse` – for file system operations and CLI support  
+- `warnings` – for suppressing unnecessary output
+
 ## How to Use
 You can run the **entire pipeline** with:
 ```bash
