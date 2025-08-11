@@ -1,6 +1,6 @@
 import os
 import shutil
-
+#s
 def rename_npy_files(input_dir, output_dir, prefix_to_remove="train_"):
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
