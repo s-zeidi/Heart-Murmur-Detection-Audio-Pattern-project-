@@ -6,7 +6,7 @@ from torchvision.models import resnet18, resnet34
 from model_dataloader import get_loaders
 from tqdm import tqdm
 
-#v3 now is available
+
 def train_resnet_model(model_type, train_csv, val_csv, model_path, batch_size=32, epochs=5):
     # Data loaders
     train_loader, val_loader = get_loaders(train_csv, val_csv, batch_size=batch_size)
