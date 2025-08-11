@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-#s
+
 models = ['LSTM', 'ResNet-34', 'CNN+Attention']
 acc_pd = [81.2, 82.9, 84.7]
 acc_pi = [74.5, 75.7, 77.6]
