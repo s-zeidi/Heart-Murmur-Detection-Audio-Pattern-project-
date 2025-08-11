@@ -1,5 +1,3 @@
-# model_dataloader.py
-
 import torch
 import pandas as pd
 import numpy as np
@@ -15,8 +13,16 @@ class MyHeartDataset(Dataset):
 
     def __getitem__(self, idx):
         row = self.data.iloc[idx]
-        x = np.load(row["segment_path"])
-        x = torch.tensor(x, dtype=torch.float32).unsqueeze(0)  # [1, 128, T]
+        x = np.load(row["segment_path"])  # Could be (128, T) or (3, 128, T)
+
+        # Ensure shape is (C, 128, T)
+        if x.ndim == 2:
+            # Case: single-channel (128, T) → add channel dim → (1, 128, T)
+            x = np.expand_dims(x, axis=0)
+        elif x.ndim == 3 and x.shape[0] not in [1, 3]:
+            raise ValueError(f"Unexpected shape {x.shape}: expected (1, 128, T) or (3, 128, T)")
+
+        x = torch.tensor(x, dtype=torch.float32)
         y = torch.tensor(self.label_map[row["murmur_label"]], dtype=torch.long)
         return x, y
 

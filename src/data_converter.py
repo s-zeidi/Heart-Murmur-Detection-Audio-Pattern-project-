@@ -5,14 +5,15 @@ import numpy as np
 import pandas as pd
 import librosa
 
-def convert_to_full_file_spectrograms(input_csv="../data/generated_data/processed_data.csv",
-                                       output_csv="../data/generated_data/spectrogram_data.csv",
-                                       output_dir="../data/generated_data/processed_spectrograms",
-                                       sr=4000, n_mels=128, fmax=2000):
-    """
-    Converts each full .wav file to a Mel spectrogram and saves as .npy.
-    Updates the dataset with spectrogram paths and returns the DataFrame.
-    """
+def convert_to_full_file_spectrograms(
+        input_csv="../data/generated_data/processed_data.csv",
+        base_output_dir="../data/generated_data/patient-dependent/",
+        n_mels=128,
+        sr=4000,
+        fmax=2000):
+
+    output_dir = os.path.join(base_output_dir, f"processed_spectrograms({n_mels})")
+    output_csv = os.path.join(base_output_dir, f"spectrogram_data({n_mels}).csv")
     os.makedirs(output_dir, exist_ok=True)
 
     df = pd.read_csv(input_csv)
@@ -29,34 +30,36 @@ def convert_to_full_file_spectrograms(input_csv="../data/generated_data/processe
 
             return save_path
         except Exception as e:
-            print(f"Error processing {file_path}: {e}")
+            print(f"❌ Error processing {file_path}: {e}")
             return None
 
     df["spectrogram_path"] = df["file_path"].apply(process_audio)
     df = df.dropna(subset=["spectrogram_path"])
     df.to_csv(output_csv, index=False)
 
-    print("✅ All audio files have been converted to full-length spectrograms and saved.")
+    print(f"✅ Full-length spectrograms saved to: {output_csv}")
     return df
 
-def convert_to_segment_level(df,
-                              audio_column="file_path",
-                              label_column="murmur_label",
-                              subject_column="subject_id",
-                              output_dir="../data/generated_data/segmented_spectrograms",
-                              output_csv="../data/generated_data/segment_level_data.csv",
-                              sr=4000,
-                              segment_seconds=3,
-                              overlap_seconds=1,
-                              n_mels=128,
-                              fft_size=512,
-                              frame_len=0.025,
-                              frame_hop=0.0125):
-    """
-    Segments each .wav file into overlapping windows, extracts Mel spectrograms,
-    saves each segment as a .npy file, and saves metadata to a CSV.
-    """
+
+def convert_to_segment_level(
+        df,
+        base_output_dir="../data/generated_data/patient-dependent/",
+        audio_column="file_path",
+        label_column="murmur_label",
+        subject_column="subject_id",
+        sr=4000,
+        segment_seconds=3,
+        overlap_seconds=1,
+        n_mels=128,
+        fft_size=512,
+        frame_len=0.025,
+        frame_hop=0.0125):
+
+    output_dir = os.path.join(base_output_dir, f"segmented_spectrograms({n_mels})")
+    output_csv = os.path.join(base_output_dir, f"segment_level_data({n_mels}).csv")
     os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(os.path.dirname(output_csv), exist_ok=True)
+
     segment_len = int(segment_seconds * sr)
     hop_len = int((segment_seconds - overlap_seconds) * sr)
     mel_win = int(frame_len * sr)
@@ -103,8 +106,7 @@ def convert_to_segment_level(df,
             continue
 
     segment_df = pd.DataFrame(segment_entries)
-    os.makedirs(os.path.dirname(output_csv), exist_ok=True)
     segment_df.to_csv(output_csv, index=False)
 
-    print(f"✅ Segment-level spectrograms created and saved to: {output_csv}")
+    print(f"✅ Segment-level spectrograms saved to: {output_csv}")
     return segment_df

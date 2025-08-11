@@ -11,13 +11,15 @@ class LSTMSoundClassifier(nn.Module):
     def __init__(self, input_size=128, hidden_size=256, num_layers=2, num_classes=3):
         super(LSTMSoundClassifier, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, bidirectional=True)
+        self.norm = nn.LayerNorm(hidden_size * 2)  # ✅ Added line
         self.dropout = nn.Dropout(0.5)
         self.fc = nn.Linear(hidden_size * 2, num_classes)
 
     def forward(self, x):
         x = x.squeeze(1).permute(0, 2, 1)  # [B, 1, 128, T] -> [B, T, 128]
         output, _ = self.lstm(x)
-        output = self.dropout(output[:, -1, :])
+        output = self.norm(output[:, -1, :])  # ✅ Normalize last hidden state
+        output = self.dropout(output)
         return self.fc(output)
 
 

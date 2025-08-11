@@ -1,14 +1,16 @@
 import torch
 import torch.nn as nn
-from torchvision.models import resnet18
+from torchvision.models import resnet18, resnet34
 from sklearn.metrics import classification_report, f1_score
 from model_dataloader import MyHeartDataset
 from torch.utils.data import DataLoader
 import pandas as pd
 import os
 
+from cnn_attention_model import CNNAttentionClassifier  # Add only if needed
 
-def evaluate_on_test(model_path, test_csv, model_name, batch_size=32):
+
+def evaluate_on_test(model_path, test_csv, model_name, model_type="resnet18", batch_size=32):
     # Select the best available device
     if torch.backends.mps.is_available():
         device = "mps"
@@ -22,10 +24,24 @@ def evaluate_on_test(model_path, test_csv, model_name, batch_size=32):
     test_dataset = MyHeartDataset(test_csv)
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
-    # Rebuild the ResNet18 model
-    model = resnet18(weights=None)
-    model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
-    model.fc = nn.Linear(model.fc.in_features, 3)
+    # Choose model type
+    if model_type == "resnet18":
+        model = resnet18(weights=None)
+        model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        model.fc = nn.Linear(model.fc.in_features, 3)
+
+    elif model_type == "resnet34":
+        model = resnet34(weights=None)
+        model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        model.fc = nn.Linear(model.fc.in_features, 3)
+
+    elif model_type == "attention_resnet34":
+        model = CNNAttentionClassifier(num_classes=3)
+
+    else:
+        raise ValueError("Invalid model_type: use 'resnet18', 'resnet34', or 'attention_resnet34'")
+
+    # Load the model weights
     model.load_state_dict(torch.load(model_path, map_location=device))
     model = model.to(device)
     model.eval()
@@ -41,22 +57,19 @@ def evaluate_on_test(model_path, test_csv, model_name, batch_size=32):
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(y.cpu().numpy())
 
-    # Classification report as dict
+    # Classification report
     report = classification_report(
-        all_labels,
-        all_preds,
+        all_labels, all_preds,
         target_names=["Absent", "Present", "Unknown"],
         output_dict=True
     )
-
     print("\n📊 Classification Report on Test Set:")
     print(classification_report(
-        all_labels,
-        all_preds,
+        all_labels, all_preds,
         target_names=["Absent", "Present", "Unknown"]
     ))
 
-    # Extract key metrics
+    # Extract metrics
     overall_f1 = f1_score(all_labels, all_preds, average="macro")
     accuracy = report["accuracy"]
     macro_precision = report["macro avg"]["precision"]
