@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torchvision.models as models
-
+#s
 class HeartSoundCNN(nn.Module):
     def __init__(self, model_type="resnet18", num_classes=3):
         super(HeartSoundCNN, self).__init__()
